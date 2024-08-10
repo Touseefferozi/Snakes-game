@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" , content="width=device-width, initial-scale=1.0">
+    <title>Snake Game </title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="script.js"></script>
+</head>
+
+<style>
+    /* Write CSS Here */
+    body {
+
+        text-align: center;
+    }
+
+    h1 {
+
+        margin-left: 6pc;
+        font-size: 20px;
+        margin-left: 2pc !important;
+        margin-top: 3pc;
+
+    }
+
+    .geeks {
+        font-size: 25px;
+        font-weight: bold;
+        color: green;
+
+
+    }
+
+    span {
+        
+        text-align: center;
+        font-size: 20px;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        margin-top: 40pc;
+        margin-bottom: 5pc;
+        color: green;
+        margin-left: -4pc;
+    }
+
+    @media only screen and (max-width:500px) {
+
+        /* For mobile phones: */
+        h1,
+        .geeks,
+        span {
+            width: 80%;
+            margin-left: 2pc;
+        }
+
+        #board {
+
+            width: 100%;
+
+
+
+
+        }
+
+    }
+</style>
+
+<body>
+
+        <h1> The Ultimate Snake Game Adventure
+    
+            <!-- <div class="geeks">Geeks For Geeks</div> -->
+   
+
+    <div data-aos="fade-left">
+        <span class="fade-left">
+            < By-Touseef-Ferozi>
+        </span>
+    </div>
+    </h1>
+
+    <canvas id="board"></canvas>
+
+    <script>
+        let blockSize = 25;
+        let total_row = 17; // total row number
+        let total_col = 17; // total column number
+        let board;
+        let context;
+
+        let snakeX = blockSize * 5;
+        let snakeY = blockSize * 5;
+
+        let speedX = 0;  // speed of snake in x coordinate
+        let speedY = 0;  // speed of snake in y coordinate
+
+        let snakeBody = [];
+
+        let foodX;
+        let foodY;
+
+        let gameOver = false;
+        let touchStartX, touchStartY;
+
+        window.onload = function () {
+            board = document.getElementById("board");
+            board.height = total_row * blockSize;
+            board.width = total_col * blockSize;
+            context = board.getContext("2d");
+
+            placeFood();
+            document.addEventListener("keyup", changeDirection);  // for keyboard movements
+
+            // Add touch event listeners
+            board.addEventListener("touchstart", handleTouchStart);
+            board.addEventListener("touchmove", handleTouchMove);
+
+            // Add mouse click event listener
+            board.addEventListener("click", handleClick);
+
+            setInterval(update, 1000 / 10);  // Set snake speed
+        }
+
+        function update() {
+            if (gameOver) {
+                return;
+            }
+
+            context.fillStyle = "green";
+            context.fillRect(0, 0, board.width, board.height);
+
+            context.fillStyle = "yellow";
+            context.fillRect(foodX, foodY, blockSize, blockSize);
+
+            if (snakeX == foodX && snakeY == foodY) {
+                snakeBody.push([foodX, foodY]);
+                placeFood();
+            }
+
+            for (let i = snakeBody.length - 1; i > 0; i--) {
+                snakeBody[i] = snakeBody[i - 1];
+            }
+            if (snakeBody.length) {
+                snakeBody[0] = [snakeX, snakeY];
+            }
+
+            context.fillStyle = "white";
+            snakeX += speedX * blockSize;
+            snakeY += speedY * blockSize;
+            context.fillRect(snakeX, snakeY, blockSize, blockSize);
+            for (let i = 0; i < snakeBody.length; i++) {
+                context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
+            }
+
+            if (snakeX < 0 || snakeX >= total_col * blockSize || snakeY < 0 || snakeY >= total_row * blockSize) {
+                gameOver = true;
+                alert("Game Over");
+            }
+
+            for (let i = 0; i < snakeBody.length; i++) {
+                if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
+                    gameOver = true;
+                    alert("Game Over");
+                }
+            }
+        }
+
+        function changeDirection(e) {
+            if (e.code == "ArrowUp" && speedY != 1) {
+                speedX = 0;
+                speedY = -1;
+            } else if (e.code == "ArrowDown" && speedY != -1) {
+                speedX = 0;
+                speedY = 1;
+            } else if (e.code == "ArrowLeft" && speedX != 1) {
+                speedX = -1;
+                speedY = 0;
+            } else if (e.code == "ArrowRight" && speedX != -1) {
+                speedX = 1;
+                speedY = 0;
+            }
+        }
+
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+
+        function handleTouchMove(e) {
+            if (e.touches.length > 1) return;  // Ignore if multiple touches
+            const touch = e.touches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0 && speedX != -1) {
+                    speedX = 1;
+                    speedY = 0;
+                } else if (dx < 0 && speedX != 1) {
+                    speedX = -1;
+                    speedY = 0;
+                }
+            } else {
+                if (dy > 0 && speedY != -1) {
+                    speedX = 0;
+                    speedY = 1;
+                } else if (dy < 0 && speedY != 1) {
+                    speedX = 0;
+                    speedY = -1;
+                }
+            }
+
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
+        }
+
+        function handleClick(e) {
+            const clickX = e.clientX - board.offsetLeft;
+            const clickY = e.clientY - board.offsetTop;
+
+            const dx = clickX - snakeX;
+            const dy = clickY - snakeY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0 && speedX != -1) {
+                    speedX = 1;
+                    speedY = 0;
+                } else if (dx < 0 && speedX != 1) {
+                    speedX = -1;
+                    speedY = 0;
+                }
+            } else {
+                if (dy > 0 && speedY != -1) {
+                    speedX = 0;
+                    speedY = 1;
+                } else if (dy < 0 && speedY != 1) {
+                    speedX = 0;
+                    speedY = -1;
+                }
+            }
+        }
+
+        function placeFood() {
+            foodX = Math.floor(Math.random() * total_col) * blockSize;
+            foodY = Math.floor(Math.random() * total_row) * blockSize;
+        }
+
+    </script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+
+</html>
